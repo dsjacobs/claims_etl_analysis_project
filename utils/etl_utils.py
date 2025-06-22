@@ -2,6 +2,12 @@ import os
 import pandas as pd
 from functools import reduce
 
+def find_csv(CSV_DIR):
+     for root, dirs, files in os.walk(CSV_DIR):
+        for file in files:
+            if file.endswith(".csv"):
+                return os.path.join(root, file)
+            
 def run_sql(conn, folder, file_list):
     for file in file_list:
         path = os.path.join(folder, file)

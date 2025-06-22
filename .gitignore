@@ -1,4 +1,5 @@
 instance/app.db
 __pycache__/
+data_input/
 *.pyc
 .env

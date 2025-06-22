@@ -2,21 +2,15 @@
 import pandas as pd
 import sqlite3
 import os
-from etl_utils import run_sql, prioritize
+from utils.etl_utils import run_sql, prioritize, find_csv
 
 SQL_FOLDER = 'sql'
 CSV_DIR = 'data_input'
 DB_PATH = 'sqlite/preston_takehome.db'
 
-def find_csv():
-     for root, dirs, files in os.walk(CSV_DIR):
-        for file in files:
-            if file.endswith(".csv"):
-                return os.path.join(root, file)
-
 def run_etl():
 # Load from CSV into SQLite
-    df = pd.read_csv(find_csv())
+    df = pd.read_csv(find_csv(CSV_DIR))
     conn = sqlite3.connect(DB_PATH)
     df.to_sql('full_raw', conn, if_exists='replace', index=False)
 

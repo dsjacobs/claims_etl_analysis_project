@@ -1,4 +1,4 @@
-from flask import Flask, render_template, jsonify, request, g
+from flask import Flask, jsonify, request
 import sqlite3
 from etl import run_etl
 
@@ -18,11 +18,16 @@ def get_db_connection():
 
 @app.route("/")
 def index():
-    conn = get_db_connection()
-    tbl_list = conn.execute("SELECT name FROM sqlite_master WHERE type='table';").fetchall()
-    conn.close()
-    table_names = [row["name"] for row in tbl_list]
-    return jsonify(table_names)
+    opening_text =  ("Welcome! Please specify a route.\n"
+        "1. /policy-info: Given a policy number, return the effective_date, issue_date, "
+        "maturity_date, death_benefit, and carrier_name to the best of our knowledge.\n"
+        "2. /carrier-policy-count: Given a carrier name, return the count of all unique "
+        "policies we have from that carrier.\n"
+        "3. /person-policies: Given a person's name, return a list of all policies for that "
+        "person regardless of their position (primary or secondary).\n"
+        "4. /data-provider-policies: Given a data provider code, return the count of all "
+        "policies we have from that provider.")
+    return opening_text, 200, {'Content-Type': 'text/plain'}
 
 @app.route("/policy-info")
 # given a policy number, return the eƯective_date, issue_date, maturity_date, death_benefit, and carrier_name to the best of our knowledge
@@ -40,8 +45,8 @@ def policy_info():
                     death_benefit,
                     carrier_name
                 FROM policy 
-                INNER JOIN id_map ON policy.new_id = id_map.new_id
-                WHERE id_map.orig_id = ?""",
+                INNER JOIN id_map ON policy.new_policy_id = id_map.new_policy_id
+                WHERE id_map.original_policy_id = ?""",
             (policy_number,)
             ).fetchall()
      conn.close()
@@ -58,7 +63,7 @@ def carrier_policy_count():
      
     conn = get_db_connection()
     carrier_count = conn.execute(
-            f"""SELECT COUNT(DISTINCT new_id)
+            f"""SELECT COUNT(DISTINCT new_policy_id)
                 FROM policy
                 WHERE carrier_name = ?""",
             (carrier_name,)
@@ -79,7 +84,7 @@ def person_policy_count():
     carrier_count = conn.execute(
             f"""SELECT *
                 FROM policy
-                WHERE person_name = ?""",
+                WHERE member_name = ?""",
             (person_name,)
             ).fetchone()
     conn.close()
@@ -97,7 +102,7 @@ def data_provider_policy_count():
      
     conn = get_db_connection()
     carrier_count = conn.execute(
-            f"""SELECT COUNT(DISTINCT new_id)
+            f"""SELECT COUNT(DISTINCT new_policy_id)
                 FROM policy
                 WHERE data_provider_code = ?""",
             (data_provider_code,)
