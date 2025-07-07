@@ -1,1 +1,1 @@
-README
+In this project, I hope to highlight my knowledge of claims data as well as data transformations, cleaning, and ETLs.
